@@ -12,6 +12,11 @@ play:
 playAI:
 	java -jar ConnectK_1.8.jar cpp:myAI
 
+submit: all
+	cp AIShell.cpp AIShell.h Move.cpp Move.h ConnectK.cpp ./Vourakis_90269441_SyntaxErrorAI/src
+	cp myAI ./Vourakis_90269441_SyntaxErrorAI/bin
+	zip -r Vourakis_90269441_SyntaxErrorAI.zip Vourakis_90269441_SyntaxErrorAI
+
 # This target deletes myAI
 clean:
 	rm -f myAI
