@@ -28,7 +28,32 @@ private:
 	int **gameState; //a pointer to a two-dimensional array representing the game state.
 	bool gravityOn; //this will be true if gravity is turned on. It will be false if gravity is turned off.
 	Move lastMove; //this is the move made last by your opponent. If your opponent has not made a move yet (you move first) then this move will hold the value (-1, -1) instead.
+    Move randomMove(); //this will move to the left-most column possible
 
+    /* minimax search implementation: Begin
+     */
+
+    // Evaluate game state and return a score
+    int evaluate (const int **gameState); 
+    
+    // check game state for terminal state. Return True if is a terminal state.
+    bool terminalTest (const int **gameState); 
+    
+    // Takes current game state, searches for best possible move and returns it.
+    Move minimax (int **gameState); 
+
+    int max (int **gameState);
+    int min (int **gameState);
+    
+    // Given the current game state it determines who's turn is it. It returns 1 for AI play, -1 for human playerand 0 otherwise.
+    int player (const int **gameState); 
+    
+    // Given the current game state it searches for k connected pieces. It returns +infinityf if AI wins and -infinity otherwise.
+    int checkWin (const int **gameState); 
+    
+
+    /* minimax search implementation: End
+     */
 
 public:
 	int deadline; //this is how many milliseconds the AI has to make move.
