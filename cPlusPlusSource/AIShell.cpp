@@ -6,7 +6,7 @@
 #include "AIShell.h"
 #include <iostream>
 #include <limits>
-
+#include <cmath>
 
 #define N_INFINITY std::numeric_limits<int>::min();
 #define P_INFINITY std::numeric_limits<int>::max();
@@ -205,17 +205,58 @@ int AIShell::evaluate(int **gameState, int player)
     if ((score = checkWin(gameState)) != 0) 
         return score;
 
-    if (player > 0)
+    int aiScore = 0;
+    int humanScore = 0;
+
+    // check vertical
+    for (int col = 0; col < numCols; ++col)
     {
-        
+        int pieces = 0;
+        int blanks = 0;    
+        for (int row = 0; row < numRows; ++row)
+        {
+            // It doesn't check for consecutive pieces.
+            if (gameState[col][row] == 0)
+                blanks++;
+            else
+                pieces += gameState[col][row];
+        }
+        // score AI
+        if((pieces + blanks) >= k)
+            aiScore += (pieces * 10); // 10 could be adjusted to improve score
+
+        // score Human
+        else if ((pieces - blanks) <= -k)
+            humanScore += (pieces * 10); // 10 could be adjusted to improve score
     }
 
-    else if (player < 0)    
+    // check horizontal 
+    for (int row = 0; row < numRows; ++row)
     {
+        int pieces = 0;
+        int blanks = 0;    
+        for (int col = 0; col < numCols; ++col)
+        {
+            // It doesn't check for consecutive pieces.
+            if (gameState[col][row] == 0)
+                blanks++;
+            else
+                pieces += gameState[col][row];
+        }
+        // score AI
+        if((pieces + blanks) >= k)
+            aiScore += (pieces * 10); // 10 could be adjusted to improve score
 
+        // score Human
+        else if ((pieces - blanks) <= -k)
+            humanScore += (pieces * 10); // 10 could be adjusted to improve score
     }
 
-    return 0; // Its a tie
+    // for AI
+    if (player == 1)
+        return (aiScore - std::abs(humanScore));
+    else if (player == -1)
+        return (std::abs(humanScore) - aiScore);    
 }
 
 bool AIShell::terminalTest ( int **gameState, int depth)
