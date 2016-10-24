@@ -4,6 +4,10 @@
 all:
 	g++ ConnectK.cpp Move.cpp AIShell.cpp -o SyntaxErrorAI
 
+# This target make a copy of the compiled AI with the extension exe
+exe:
+	cp SyntaxErrorAI SyntaxErrorAI.exe
+
 # This target executes the ConnectK shell
 play:
 	java -jar ConnectK_1.8.jar

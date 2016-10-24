@@ -34,23 +34,27 @@ private:
      */
 
     // Evaluate game state and return a score
-    int evaluate (const int **gameState); 
+    int evaluate (int **gameState, int player); // Add const
     
     // check game state for terminal state. Return True if is a terminal state.
-    bool terminalTest (const int **gameState); 
+    bool terminalTest (int **gameState, int depth); // Add const 
     
     // Takes current game state, searches for best possible move and returns it.
     Move minimax (int **gameState); 
 
-    int max (int **gameState);
-    int min (int **gameState);
+    int max (int **gameState, int depth);
+    int min (int **gameState, int depth);
     
     // Given the current game state it determines who's turn is it. It returns 1 for AI play, -1 for human playerand 0 otherwise.
     int player (const int **gameState); 
     
-    // Given the current game state it searches for k connected pieces. It returns +infinityf if AI wins and -infinity otherwise.
-    int checkWin (const int **gameState); 
-    
+    // Given the current game state it searches for k connected pieces. It returns +infinity if AI wins and -infinity otherwise. 0 if no winners.
+    int checkWin (int **gameState); 
+
+    // Helper functions for "checkWin()"
+    int checkHorizontal(int **gameState);    
+    int checkVertical(int **gameState);    
+    int checkDiagonal(int **gameState);    
 
     /* minimax search implementation: End
      */
