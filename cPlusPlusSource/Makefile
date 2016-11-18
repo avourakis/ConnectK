@@ -2,7 +2,7 @@
 
 # This target compiles all the files and creates myAI
 all:
-	g++ ConnectK.cpp Move.cpp AIShell.cpp -o SyntaxErrorAI
+	g++ -std=c++11 -pthread ConnectK.cpp Move.cpp AIShell.cpp -o SyntaxErrorAI
 
 # This target make a copy of the compiled AI with the extension exe
 exe:

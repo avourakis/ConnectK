@@ -8,6 +8,7 @@
 
 #pragma once
 #include "Move.h"
+#include <atomic>
 
 
 // A new AIShell will be created for every move request.
@@ -36,14 +37,18 @@ private:
     // Evaluate game state and return a score
     int evaluate (int **gameState, int player); // Add const
     
+    int evalHorizontal(int **gameState, int *aiScore, int *humanScore);
+    int evalVertical(int **gameState, int *aiScore, int *humanScore);
+    int evalDiagonal(int **gameState, int *aiScore, int *humanScore);
+    
     // check game state for terminal state. Return True if is a terminal state.
-    bool terminalTest (int **gameState, int depth); // Add const 
+    bool terminalTest (int **gameState, std::atomic<int>& done); // Add const 
     
     // Takes current game state, searches for best possible move and returns it.
-    Move minimax (int **gameState); 
+    Move minimax (int **gameState, std::atomic<int>& done); 
 
-    int max (int **gameState, int depth);
-    int min (int **gameState, int depth);
+    int max (int **gameState, int depth, int alpha, int beta, std::atomic<int>& done); // Includes depth limit and Alpha beta pruning 
+    int min (int **gameState, int depth, int alpha, int beta, std::atomic<int>& done); // Includes depth limit and Alpha beta pruning
     
     // Given the current game state it determines who's turn is it. It returns 1 for AI play, -1 for human playerand 0 otherwise.
     int player (const int **gameState); 
