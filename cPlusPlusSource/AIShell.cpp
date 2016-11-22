@@ -288,10 +288,10 @@ int AIShell::evaluate(int **gameState, int player)
         return (std::abs(humanScore) - aiScore);    
 }
 
-bool AIShell::terminalTest ( int **gameState, std::atomic<int>& done)
+bool AIShell::terminalTest ( int **gameState, std::atomic<int>& done, int depth)
 {
-    //if (checkWin(gameState) != 0 || depth > MAX_DEPTH) // if game is over
-    if (checkWin(gameState) != 0 || done != 0) // if game is over
+    if (checkWin(gameState) != 0 || depth > MAX_DEPTH) // if game is over
+    //if (checkWin(gameState) != 0 || done == 1) // if game is over
         return true;
 
     return 0;
@@ -299,8 +299,17 @@ bool AIShell::terminalTest ( int **gameState, std::atomic<int>& done)
 
 int AIShell::max(int **gameState, int depth, int alpha, int beta, std::atomic<int>& done)
 {
-    if (terminalTest(gameState, done) == true)
+    if (terminalTest(gameState, done, depth) == true)
+    {
+        /*
+        if (depth < MAX_DEPTH) // If time is up, but search hasn't reached max depth
+        {
+            std::cout << "Ended without reaching max depth" << std::endl;
+            return P_INFINITY;
+        }
+        */
         return evaluate(gameState, -1); // Review player
+    }
 
     //int score = N_INFINITY; // This score could be less than negative infinity. REVIEW
     
@@ -332,9 +341,17 @@ int AIShell::max(int **gameState, int depth, int alpha, int beta, std::atomic<in
 
 int AIShell::min(int **gameState, int depth, int alpha, int beta, std::atomic<int>& done)
 {
-    if (terminalTest(gameState, done) == true)
+    if (terminalTest(gameState, done, depth) == true)
+    {
+        /*
+        if (depth < MAX_DEPTH) // If time is up, but search hasn't reached max depth
+        {
+            std::cout << "Ended without reaching max depth" << std::endl;
+            return N_INFINITY; // Ignore
+        }
+        */
         return evaluate(gameState, 1); // Review Player
-
+    }
     //int score = P_INFINITY; // This score could be less than positive infinity. REVIEW
     
     for(int col = 0; col < numCols; ++col)
@@ -375,6 +392,11 @@ Move AIShell::minimax(int **gameState, std::atomic<int>& done)
     {
         MAX_DEPTH = d;
 
+        if (done == 1)
+        {
+            return bestMove;
+        }
+
         if (d > 0) // Starting from bestMove
         {
             gameState[bestMove.col][bestMove.row] = 1; // play piece for max player
@@ -404,6 +426,7 @@ Move AIShell::minimax(int **gameState, std::atomic<int>& done)
                         score = tempScore;
                         bestMove.col = col;
                         bestMove.row = row;
+                        //std::cout << "COL: " << col << ", ROW: " << row << std::endl;
                     }    
 
                     gameState[col][row] = 0; // removes piece to bring bag state back to normal   
@@ -472,7 +495,7 @@ Move AIShell::makeMove(){
     
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now(); // Start timer
     //std::thread thread1(minimax, std::ref(done), std::ref(timeElapsed));
-    auto future = std::async(&AIShell::minimax, this, gameState, std::ref(done)); // Creates a new thread and saves the return value in future
+    auto future = std::async(&AIShell::minimax, this, std::ref(gameState), std::ref(done)); // Creates a new thread and saves the return value in future
 
     while(!done)
     {

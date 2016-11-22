@@ -42,7 +42,7 @@ private:
     int evalDiagonal(int **gameState, int *aiScore, int *humanScore);
     
     // check game state for terminal state. Return True if is a terminal state.
-    bool terminalTest (int **gameState, std::atomic<int>& done); // Add const 
+    bool terminalTest (int **gameState, std::atomic<int>& done, int depth); // Add const 
     
     // Takes current game state, searches for best possible move and returns it.
     Move minimax (int **gameState, std::atomic<int>& done); 

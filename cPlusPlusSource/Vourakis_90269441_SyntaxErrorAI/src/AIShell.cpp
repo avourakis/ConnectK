@@ -7,14 +7,20 @@
 #include <iostream>
 #include <limits>
 #include <cmath>
+#include <thread>
+#include <chrono>
+#include <future>
+#include <atomic>
 
 #define N_INFINITY std::numeric_limits<int>::min();
 #define P_INFINITY std::numeric_limits<int>::max();
-#define MAX_DEPTH 11 // 10 is limit without alpha-beta
+//#define MAX_DEPTH 10 // 10 is limit without alpha-beta
+
+int MAX_DEPTH = 0;
 
 AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move lastMove)
 {
-	this->deadline=0;
+	this->deadline=5000; // 5000 ms as used during tournament
 	this->numRows=numRows;
 	this->numCols=numCols;
 	this->gravityOn=gravityOn;
@@ -282,17 +288,18 @@ int AIShell::evaluate(int **gameState, int player)
         return (std::abs(humanScore) - aiScore);    
 }
 
-bool AIShell::terminalTest ( int **gameState, int depth)
+bool AIShell::terminalTest ( int **gameState, std::atomic<int>& done)
 {
-    if (checkWin(gameState) != 0 || depth >= MAX_DEPTH) // if game is over
+    //if (checkWin(gameState) != 0 || depth > MAX_DEPTH) // if game is over
+    if (checkWin(gameState) != 0 || done != 0) // if game is over
         return true;
 
     return 0;
 }
 
-int AIShell::max(int **gameState, int depth, int alpha, int beta)
+int AIShell::max(int **gameState, int depth, int alpha, int beta, std::atomic<int>& done)
 {
-    if (terminalTest(gameState, depth) == true)
+    if (terminalTest(gameState, done) == true)
         return evaluate(gameState, -1); // Review player
 
     //int score = N_INFINITY; // This score could be less than negative infinity. REVIEW
@@ -305,7 +312,7 @@ int AIShell::max(int **gameState, int depth, int alpha, int beta)
             {
                 gameState[col][row] = 1; // play piece for min player
                 
-                int tempScore = min(gameState, ++depth, alpha, beta); // looks for min score
+                int tempScore = min(gameState, ++depth, alpha, beta, done); // looks for min score
 
                 if(tempScore > alpha) // The max value
                     alpha = tempScore;
@@ -323,9 +330,9 @@ int AIShell::max(int **gameState, int depth, int alpha, int beta)
     return alpha;
 }
 
-int AIShell::min(int **gameState, int depth, int alpha, int beta)
+int AIShell::min(int **gameState, int depth, int alpha, int beta, std::atomic<int>& done)
 {
-    if (terminalTest(gameState, depth) == true)
+    if (terminalTest(gameState, done) == true)
         return evaluate(gameState, 1); // Review Player
 
     //int score = P_INFINITY; // This score could be less than positive infinity. REVIEW
@@ -338,7 +345,7 @@ int AIShell::min(int **gameState, int depth, int alpha, int beta)
             {
                 gameState[col][row] = -1; // play piece for human player
                 
-                int tempScore = max(gameState, ++depth, alpha, beta); // looks for max score
+                int tempScore = max(gameState, ++depth, alpha, beta, done); // looks for max score
 
                 if(tempScore < beta) // The min value
                     beta = tempScore;
@@ -354,37 +361,84 @@ int AIShell::min(int **gameState, int depth, int alpha, int beta)
     return beta;
 }
 
-Move AIShell::minimax(int **gameState)
+Move AIShell::minimax(int **gameState, std::atomic<int>& done)
 {
     int score = N_INFINITY;
     int alpha = N_INFINITY; // Alpha
     int beta = P_INFINITY; // Beta
 
     Move bestMove;
+    bestMove.row = -1;
+    bestMove.row = -1; 
 
-    for(int col = 0; col < numCols; ++col)
+    for(int d = 0; d < 20; d++) // Find out how many nodes possible at lowest level.
     {
-        for (int row = 0; row < numRows; ++row)
+        MAX_DEPTH = d;
+
+        if (d > 0) // Starting from bestMove
         {
-            if (gameState[col][row] == 0)
-            {
-                gameState[col][row] = 1; // play piece for max player
-                
-                int tempScore = min(gameState, 1, alpha, beta); // looks for max score. Passes a depth of 1
-                alpha = tempScore; // Updating alpha
+            gameState[bestMove.col][bestMove.row] = 1; // play piece for max player
+            
+            int tempScore = min(gameState, 1, alpha, beta, done); // looks for max score. Passes a depth of 1
+            alpha = tempScore; // Updating alpha
+            
+            if(tempScore >= score) // < or > will depend on default score
+                score = tempScore;
 
-                if(tempScore >= score) // < or > will depend on default score
-                {
-                    score = tempScore;
-                    bestMove.col = col;
-                    bestMove.row = row;
-                }    
-
-                gameState[col][row] = 0; // removes piece to bring bag state back to normal   
-            }
-
+            gameState[bestMove.col][bestMove.row] = 0; // removes piece to bring bag state back to normal   
         }
-    }
+
+        for(int col = 0; col < numCols; ++col)
+        {
+            for (int row = 0; row < numRows; ++row)
+            {
+                if (gameState[col][row] == 0 && col != bestMove.col && row != bestMove.row)
+                {
+                    gameState[col][row] = 1; // play piece for max player
+                    
+                    int tempScore = min(gameState, 1, alpha, beta, done); // looks for max score. Passes a depth of 1
+                    alpha = tempScore; // Updating alpha
+
+                    if(tempScore >= score) // < or > will depend on default score
+                    {
+                        score = tempScore;
+                        bestMove.col = col;
+                        bestMove.row = row;
+                    }    
+
+                    gameState[col][row] = 0; // removes piece to bring bag state back to normal   
+                }
+
+            }
+        }
+        }
+
+        /*
+        for(int col = 0; col < numCols; ++col)
+        {
+            for (int row = 0; row < numRows; ++row)
+            {
+                if (gameState[col][row] == 0)
+                {
+                    gameState[col][row] = 1; // play piece for max player
+                    
+                    int tempScore = min(gameState, 1, alpha, beta); // looks for max score. Passes a depth of 1
+                    alpha = tempScore; // Updating alpha
+
+                    if(tempScore >= score) // < or > will depend on default score
+                    {
+                        score = tempScore;
+                        bestMove.col = col;
+                        bestMove.row = row;
+                    }    
+
+                    gameState[col][row] = 0; // removes piece to bring bag state back to normal   
+                }
+
+            }
+        }
+        */
+    MAX_DEPTH = 0;
 
     return bestMove;
 }
@@ -414,7 +468,21 @@ Move AIShell::randomMove()
 }
 
 Move AIShell::makeMove(){
-	//this part should be filled in by the student to implement the AI
-	//Example of a move could be: Move move(1, 2); //this will make a move at col 1, row 2
-    return minimax(gameState);
+    std::atomic<int> done{0};
+    
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now(); // Start timer
+    //std::thread thread1(minimax, std::ref(done), std::ref(timeElapsed));
+    auto future = std::async(&AIShell::minimax, this, gameState, std::ref(done)); // Creates a new thread and saves the return value in future
+
+    while(!done)
+    {
+        std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now(); // End timer
+        std::chrono::milliseconds mill = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1); // Time elapsed in milliseconds
+
+        if( mill.count() >= deadline && !done)
+            done = 1; // Used to let thread know when to quit
+    }
+
+    //return minimax(gameState);
+    return future.get(); // return the value from thread
 }
