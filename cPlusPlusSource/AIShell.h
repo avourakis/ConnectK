@@ -35,14 +35,14 @@ private:
      */
 
     // Evaluate game state and return a score
-    int evaluate (int **gameState, int player); // Add const
+    int evaluate (int **gameState, int score, int player); // Add const
     
     int evalHorizontal(int **gameState, int *aiScore, int *humanScore);
     int evalVertical(int **gameState, int *aiScore, int *humanScore);
     int evalDiagonal(int **gameState, int *aiScore, int *humanScore);
     
     // check game state for terminal state. Return True if is a terminal state.
-    bool terminalTest (int **gameState, std::atomic<int>& done, int depth); // Add const 
+    bool terminalTest (int **gameState, int& score, int depth); // Add const 
     
     // Takes current game state, searches for best possible move and returns it.
     Move minimax (int **gameState, std::atomic<int>& done); 

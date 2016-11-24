@@ -14,7 +14,6 @@
 
 #define N_INFINITY std::numeric_limits<int>::min();
 #define P_INFINITY std::numeric_limits<int>::max();
-//#define MAX_DEPTH 10 // 10 is limit without alpha-beta
 
 int MAX_DEPTH = 0;
 
@@ -30,59 +29,69 @@ AIShell::AIShell(int numCols, int numRows, bool gravityOn, int** gameState, Move
 
 int AIShell::checkHorizontal(int **gameState)
 {
-    
-    int counter = 0;
-        
     for (int row = 0; row < numRows; ++row)
     {
+        int aiCon = 0;
+        int humanCon = 0;
+
         for (int col = 0; col < numCols; ++col)
         {
-            if (gameState[col][row] == 0)
-                counter = 0;
-            else
-                counter += gameState[col][row]; 
-            
-            if (counter == k)
-            {
-                return P_INFINITY;
-            }
-            else if (counter == -k)
-                return N_INFINITY;
-        }
 
-        counter = 0;
-    
-    } 
-    
+            if (aiCon == k) return P_INFINITY;
+            if (humanCon == k) return N_INFINITY;
+
+            if(gameState[col][row] == 1)
+            {
+                aiCon ++;
+                humanCon = 0;
+            }
+            else if(gameState[col][row] == -1)
+            {
+                humanCon++;
+                aiCon = 0;
+            }
+            else
+            {
+                aiCon = 0;
+                humanCon = 0;
+            } 
+        }
+    }
+
     return 0;
 }
 
 int AIShell::checkVertical(int **gameState)
 {
-    int counter = 0;
-        
     for (int col = 0; col < numCols; ++col)
     {
+        int aiCon = 0;
+        int humanCon = 0;
+
         for (int row = 0; row < numRows; ++row)
         {
-            if (gameState[col][row] == 0)
-                counter = 0;
-            else
-                counter += gameState[col][row]; 
-            
-            if (counter == k)
+
+            if (aiCon == k) return P_INFINITY;
+            if (humanCon == k) return N_INFINITY;
+
+            if(gameState[col][row] == 1)
             {
-                return P_INFINITY;
+                aiCon ++;
+                humanCon = 0;
             }
-            else if (counter == -k)
-                return N_INFINITY;
+            else if(gameState[col][row] == -1)
+            {
+                humanCon++;
+                aiCon = 0;
+            }
+            else
+            {
+                aiCon = 0;
+                humanCon = 0;
+            } 
         }
-
-        counter = 0;
-    
-    } 
+    }
     return 0;
-
 }
 
 int AIShell::checkDiagonal(int **gameState)
@@ -185,10 +194,11 @@ int AIShell::checkWin(int **gameState)
     /*
      * Improvements needed:
      * 1) Only check main diagonal(s) if k is equal to the number of rows 
+     * 2) Logic for when to check or not could be fixed.
      */
 
     int score = 0;
-    
+    /* 
     if (k > numRows) // Only check horizontals if k is greater than number of rows
     {
         if((score = checkHorizontal(gameState)) != 0)
@@ -197,13 +207,14 @@ int AIShell::checkWin(int **gameState)
     
     else
     {
+    */
         if((score = checkHorizontal(gameState)) != 0)
             return score;
         else if((score = checkVertical(gameState)) != 0)
             return score;
-        else if((score = checkDiagonal(gameState)) != 0)
-            return score;
-    }
+        //else if((score = checkDiagonal(gameState)) != 0)
+            //return score;
+    //}
 
     return 0;
 }
@@ -212,8 +223,51 @@ int AIShell::evalVertical(int **gameState, int *aiScore, int* humanScore)
 {
     for (int col = 0; col < numCols; ++col)
     {
+        int aiCon = 0; // Pieces placed consecutively.
+        int humanCon = 0; // Pieces placed consecutively.
+        int blanks = 0;
+        int pieces = 0;
+
+        // 2 for placed pieces, 1 for open spots
+        for (int row = 0; row < numRows; ++row)
+        {
+            if(gameState[col][row] == 1)
+            {
+                aiCon += 1;
+                humanCon = 0;
+                pieces += gameState[col][row];
+            }
+            else if(gameState[col][row] == -1)
+            {
+                humanCon += -1;
+                aiCon = 0;
+                pieces += gameState[col][row];
+            }
+            else
+                blanks++;
+        }
+
+        if (aiCon == (k-1))
+            aiCon += 10;    
+        if (humanCon == -(k-1))
+            humanCon += -10;    
+
+        // score AI
+        if((pieces + blanks) >= k)
+            aiScore += (aiCon * 10);
+
+        // score Human
+        else if ((pieces - blanks) <= -k)
+            humanScore += (humanCon * 10);
+    }
+    /*
+    for (int col = 0; col < numCols; ++col)
+    {
         int pieces = 0;
         int blanks = 0;    
+        int aiCon = 0; // Pieces placed consecutively.
+        int humanCon = 0; // Pieces placed consecutively.
+
         for (int row = 0; row < numRows; ++row)
         {
             // It doesn't check for consecutive pieces.
@@ -230,13 +284,51 @@ int AIShell::evalVertical(int **gameState, int *aiScore, int* humanScore)
         else if ((pieces - blanks) <= -k)
             humanScore += (pieces * 10); // 10 could be adjusted to improve score
     }
-
-
+    */
 }
 
 int AIShell::evalHorizontal(int **gameState, int *aiScore, int* humanScore)
 {
+    for (int row = 0; row < numRows; ++row)
+    {
+        int aiCon = 0; // Pieces placed consecutively.
+        int humanCon = 0; // Pieces placed consecutively.
+        int blanks = 0;
+        int pieces = 0;
 
+        // 2 for placed pieces, 1 for open spots
+        for (int col = 0; col < numCols; ++col)
+        {
+            if(gameState[col][row] == 1)
+            {
+                aiCon += 1;
+                humanCon = 0;
+                pieces += gameState[col][row];
+            }
+            else if(gameState[col][row] == -1)
+            {
+                humanCon += -1;
+                aiCon = 0;
+                pieces += gameState[col][row];
+            }
+            else
+                blanks++;
+        }
+
+        if (aiCon == (k-1))
+            aiCon += 10;    
+        if (humanCon == -(k-1))
+            humanCon += -10;    
+
+        // score AI
+        if((pieces + blanks) >= k)
+            aiScore += (aiCon * 10);
+
+        // score Human
+        else if ((pieces - blanks) <= -k)
+            humanScore += (humanCon * 10);
+    }
+    /*
     for (int row = 0; row < numRows; ++row)
     {
         int pieces = 0;
@@ -257,7 +349,7 @@ int AIShell::evalHorizontal(int **gameState, int *aiScore, int* humanScore)
         else if ((pieces - blanks) <= -k)
             humanScore += (pieces * 10); // 10 could be adjusted to improve score
     }
-
+    */
 }
 
 int AIShell::evalDiagonal(int **gameState, int *aiScore, int* humanScore)
@@ -266,50 +358,47 @@ int AIShell::evalDiagonal(int **gameState, int *aiScore, int* humanScore)
 }
 
 
-int AIShell::evaluate(int **gameState, int player)
+int AIShell::evaluate(int **gameState, int score, int player)
 {   
-    int score = 0;
-    if ((score = checkWin(gameState)) != 0) 
+    if (score != 0) // Check for win
         return score;
 
     int aiScore = 0;
     int humanScore = 0;
     
     // Get evaluation scores
-    evalVertical(gameState, &aiScore, &humanScore);
-    evalHorizontal(gameState, &aiScore, &humanScore);
-    evalDiagonal(gameState, &aiScore, &humanScore);
+
+    if (numRows >= k) // Only check vert and diag if number of rows is greater or equal to k
+    {
+        evalVertical(gameState, &aiScore, &humanScore);
+        evalDiagonal(gameState, &aiScore, &humanScore);
+    }    
+
+    if (numCols >= k) // Only check Hor if number of cols is greater or equal to k
+        evalHorizontal(gameState, &aiScore, &humanScore);
 
 
     // Returned evaluation for current player
+
     if (player == 1)
         return (aiScore - std::abs(humanScore));
     else if (player == -1)
         return (std::abs(humanScore) - aiScore);    
 }
 
-bool AIShell::terminalTest ( int **gameState, std::atomic<int>& done, int depth)
+bool AIShell::terminalTest (int **gameState, int& score, int depth)
 {
-    if (checkWin(gameState) != 0 || depth > MAX_DEPTH) // if game is over
-    //if (checkWin(gameState) != 0 || done == 1) // if game is over
+    if ((score = checkWin(gameState)) != 0 || depth > MAX_DEPTH) // if game is over
         return true;
 
-    return 0;
+    return false;
 }
 
 int AIShell::max(int **gameState, int depth, int alpha, int beta, std::atomic<int>& done)
 {
-    if (terminalTest(gameState, done, depth) == true)
-    {
-        /*
-        if (depth < MAX_DEPTH) // If time is up, but search hasn't reached max depth
-        {
-            std::cout << "Ended without reaching max depth" << std::endl;
-            return P_INFINITY;
-        }
-        */
-        return evaluate(gameState, -1); // Review player
-    }
+    int score = 0;
+    if (terminalTest(gameState, score, depth) == true)
+        return evaluate(gameState, score, -1); // Review player
 
     //int score = N_INFINITY; // This score could be less than negative infinity. REVIEW
     
@@ -341,17 +430,10 @@ int AIShell::max(int **gameState, int depth, int alpha, int beta, std::atomic<in
 
 int AIShell::min(int **gameState, int depth, int alpha, int beta, std::atomic<int>& done)
 {
-    if (terminalTest(gameState, done, depth) == true)
-    {
-        /*
-        if (depth < MAX_DEPTH) // If time is up, but search hasn't reached max depth
-        {
-            std::cout << "Ended without reaching max depth" << std::endl;
-            return N_INFINITY; // Ignore
-        }
-        */
-        return evaluate(gameState, 1); // Review Player
-    }
+    int score = 0;
+    if (terminalTest(gameState, score, depth) == true)
+        return evaluate(gameState, score,  1); // Review Player
+
     //int score = P_INFINITY; // This score could be less than positive infinity. REVIEW
     
     for(int col = 0; col < numCols; ++col)
@@ -388,14 +470,17 @@ Move AIShell::minimax(int **gameState, std::atomic<int>& done)
     bestMove.row = -1;
     bestMove.row = -1; 
 
-    for(int d = 0; d < 20; d++) // Find out how many nodes possible at lowest level.
+    for(int d = 0; d < 30; d++) // Find out how many nodes possible at lowest level.
     {
         MAX_DEPTH = d;
 
         if (done == 1)
         {
+            std::cout << "Time is up" << std::endl;
+            std::cout << "Depth: " << d << std::endl;
             return bestMove;
-        }
+
+        }    
 
         if (d > 0) // Starting from bestMove
         {
@@ -414,7 +499,7 @@ Move AIShell::minimax(int **gameState, std::atomic<int>& done)
         {
             for (int row = 0; row < numRows; ++row)
             {
-                if (gameState[col][row] == 0 && col != bestMove.col && row != bestMove.row)
+                if (gameState[col][row] == 0 && col != bestMove.col && row != bestMove.row) // REVIEW THIS, REPEATING MOVE!!!!
                 {
                     gameState[col][row] = 1; // play piece for max player
                     
@@ -426,7 +511,6 @@ Move AIShell::minimax(int **gameState, std::atomic<int>& done)
                         score = tempScore;
                         bestMove.col = col;
                         bestMove.row = row;
-                        //std::cout << "COL: " << col << ", ROW: " << row << std::endl;
                     }    
 
                     gameState[col][row] = 0; // removes piece to bring bag state back to normal   
@@ -434,33 +518,8 @@ Move AIShell::minimax(int **gameState, std::atomic<int>& done)
 
             }
         }
-        }
+    }
 
-        /*
-        for(int col = 0; col < numCols; ++col)
-        {
-            for (int row = 0; row < numRows; ++row)
-            {
-                if (gameState[col][row] == 0)
-                {
-                    gameState[col][row] = 1; // play piece for max player
-                    
-                    int tempScore = min(gameState, 1, alpha, beta); // looks for max score. Passes a depth of 1
-                    alpha = tempScore; // Updating alpha
-
-                    if(tempScore >= score) // < or > will depend on default score
-                    {
-                        score = tempScore;
-                        bestMove.col = col;
-                        bestMove.row = row;
-                    }    
-
-                    gameState[col][row] = 0; // removes piece to bring bag state back to normal   
-                }
-
-            }
-        }
-        */
     MAX_DEPTH = 0;
 
     return bestMove;
