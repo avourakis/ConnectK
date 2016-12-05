@@ -380,33 +380,6 @@ int AIShell::evalVertical(int **gameState, int *aiScore, int* humanScore, Move l
         gameState[lastMove.col][lastMove.row] = 1;    
 
     }
-         
-
-    /*
-    for (int col = 0; col < numCols; ++col)
-    {
-        int pieces = 0;
-        int blanks = 0;    
-        int aiCon = 0; // Pieces placed consecutively.
-        int humanCon = 0; // Pieces placed consecutively.
-
-        for (int row = 0; row < numRows; ++row)
-        {
-            // It doesn't check for consecutive pieces.
-            if (gameState[col][row] == 0)
-                blanks++;
-            else
-                pieces += gameState[col][row];
-        }
-        // score AI
-        if((pieces + blanks) >= k)
-            aiScore += (pieces * 10); // 10 could be adjusted to improve score
-
-        // score Human
-        else if ((pieces - blanks) <= -k)
-            humanScore += (pieces * 10); // 10 could be adjusted to improve score
-    }
-    */
 }
 
 int AIShell::evalHorizontal(int **gameState, int *aiScore, int* humanScore, Move lastMove)
@@ -538,34 +511,48 @@ int AIShell::evalHorizontal(int **gameState, int *aiScore, int* humanScore, Move
 
     }
 
-    // END OF NEW SCORING SYSTEM
-    
-    /*
-    for (int row = 0; row < numRows; ++row)
-    {
-        int pieces = 0;
-        int blanks = 0;    
-        for (int col = 0; col < numCols; ++col)
-        {
-            // It doesn't check for consecutive pieces.
-            if (gameState[col][row] == 0)
-                blanks++;
-            else
-                pieces += gameState[col][row];
-        }
-        // score AI
-        if((pieces + blanks) >= k)
-            aiScore += (pieces * 10); // 10 could be adjusted to improve score
-
-        // score Human
-        else if ((pieces - blanks) <= -k)
-            humanScore += (pieces * 10); // 10 could be adjusted to improve score
-    }
-    */
 }
 
 int AIShell::evalDiagonal(int **gameState, int *aiScore, int* humanScore, Move lastMove)
 {
+    // Evaluate AI
+    // R: Diagonals that start from first col
+    for (int row = numRows - 1; row >= 0; --row)
+    {
+        for (int i = row, col = 0; (i < numRows && col < numCols); ++i, ++col)
+        {
+        }
+    }
+
+    // R: Diagonals that start from last row
+    for (int col = 1; col < numCols; ++col)
+    {
+
+        for (int i = col, row = 0; (i < numCols && row < numRows); ++i, ++row)
+        {
+        }
+
+    }
+
+    // L: Diagonals that start from last col
+    for (int row = numRows - 1; row >= 0; --row)
+    {
+
+        for (int i = row, col = numCols - 1; (i < numRows && col >= 0); ++i, --col)
+        {
+        }
+    }
+
+    // L: Diagonals that start from last row
+    for (int col = (numCols - 1) - 1; col >= 0; --col)
+    {
+
+        for (int i = col, row = 0; (i >= 0 && row < numRows); --i, ++row)
+        {
+        }
+    }
+
+
     return 0;
 }
 
@@ -593,9 +580,9 @@ int AIShell::evaluate(int **gameState, int score, int player, Move lastMove)
     // Returned evaluation for current player
 
     if (player == 1)
-        return (aiScore - std::abs(humanScore));
+        return (aiScore - humanScore);
     else if (player == -1)
-        return (std::abs(humanScore) - aiScore);    
+        return (humanScore - aiScore);    
 }
 
 bool AIShell::terminalTest (int **gameState, int& score, int depth)
@@ -761,7 +748,8 @@ Move AIShell::randomMove()
     }
 }
 
-Move AIShell::makeMove(){
+Move AIShell::makeMove()
+{
 
     if(gameState[numCols-1][0] == 0)
         return Move(numCols - 1, 0);
