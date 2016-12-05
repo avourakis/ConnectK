@@ -35,11 +35,11 @@ private:
      */
 
     // Evaluate game state and return a score
-    int evaluate (int **gameState, int score, int player); // Add const
+    int evaluate (int **gameState, int score, int player, Move lastMove); // Add const
     
-    int evalHorizontal(int **gameState, int *aiScore, int *humanScore);
-    int evalVertical(int **gameState, int *aiScore, int *humanScore);
-    int evalDiagonal(int **gameState, int *aiScore, int *humanScore);
+    int evalHorizontal(int **gameState, int *aiScore, int *humanScore, Move lastMove);
+    int evalVertical(int **gameState, int *aiScore, int *humanScore, Move lastMove);
+    int evalDiagonal(int **gameState, int *aiScore, int *humanScore, Move lastMove);
     
     // check game state for terminal state. Return True if is a terminal state.
     bool terminalTest (int **gameState, int& score, int depth); // Add const 
@@ -47,8 +47,8 @@ private:
     // Takes current game state, searches for best possible move and returns it.
     Move minimax (int **gameState, std::atomic<int>& done); 
 
-    int max (int **gameState, int depth, int alpha, int beta, std::atomic<int>& done); // Includes depth limit and Alpha beta pruning 
-    int min (int **gameState, int depth, int alpha, int beta, std::atomic<int>& done); // Includes depth limit and Alpha beta pruning
+    int max (int **gameState, int depth, int alpha, int beta, std::atomic<int>& done, Move lastMove); // Includes depth limit and Alpha beta pruning 
+    int min (int **gameState, int depth, int alpha, int beta, std::atomic<int>& done, Move lastMove); // Includes depth limit and Alpha beta pruning
     
     // Given the current game state it determines who's turn is it. It returns 1 for AI play, -1 for human playerand 0 otherwise.
     int player (const int **gameState); 
